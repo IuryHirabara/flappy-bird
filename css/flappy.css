@@ -29,7 +29,10 @@ body {
     justify-content: space-around;
 }
 
-[wm-flappy] div {
+.complete-tube-top,
+.complete-tube-bottom {
+    position: absolute;
+    right: -0.8%;
     height: 20%;
     width: 10%;
     display: flex;
@@ -37,13 +40,13 @@ body {
     align-items: center;
 }
 
-.complete-tube {
-    position: absolute;
-    right: -0.8%;
+.complete-tube-bottom {
+    margin-top: 18.6%;
+    flex-direction: column-reverse;
 }
 
 .tube {
-    padding: 100% 46%;
+    padding: 70% 46%;
     border: 4px solid #000;
     border-top: none;
     border-bottom: none;
