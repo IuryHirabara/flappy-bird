@@ -1,130 +1,145 @@
-let wmFlappy = document.querySelector('[wm-flappy]')
-let bird = document.querySelector('img')
-let marginTopBird = 200
-bird.style.marginTop = `${marginTopBird}px`
-let placar = document.querySelector('.placar')
-placar.innerHTML = '0x'
-const larguraMaxima = (wmFlappy.clientWidth * 1.13).toFixed(0)
-const incrementoMovimento = Number((0.002 * larguraMaxima).toFixed(0))
-
-const gerarTamanho = () => Math.floor(Math.random() * 16) + 92
-const retirarLetras = (x, letras) => x.replace(letras, '')
-
-const criarTubo = tipoTubo => {
-    let tuboCompleto = document.createElement('div')
-    tuboCompleto.classList.add(tipoTubo)
-
-    let tube = document.createElement('div')
-    tube.classList.add('tube')
-    const tamanho = gerarTamanho()
-    tube.style.padding = `${tamanho}px 46%`
-    tuboCompleto.appendChild(tube)
-
-    let hat = document.createElement('div')
-    hat.classList.add('hat')
-    hat.style.padding = '15px 76.8px'
-    tuboCompleto.appendChild(hat)
-
-    let point = document.createElement('div')
-    point.classList.add('point')
-    tuboCompleto.appendChild(point)
-
-    wmFlappy.appendChild(tuboCompleto)
-    return tuboCompleto
+function novoElemento(tagName, className) {
+    const elem = document.createElement(tagName);
+    elem.classList.add(className);
+    return elem;
 }
 
-const realizarMovimento = tuboCompleto => {
-    let movimento = 0
-    
-    const intervalo = setInterval(() => {
-        if (movimento >= larguraMaxima) {
-            clearInterval(intervalo)
-            return
-        }
-        
-        movimento = movimento + incrementoMovimento
-        tuboCompleto.style.right = `${movimento}px`
-    }, 30)
+function Tubo(tuboDeBaixo = false) {
+    this.tubo = novoElemento('div', 'tubo');
+    const cabeca = novoElemento('div', 'cabeca-do-tubo');
+    const corpo = novoElemento('div', 'corpo-do-tubo');
+    this.tubo.appendChild(tuboDeBaixo ? cabeca : corpo);
+    this.tubo.appendChild(tuboDeBaixo ? corpo : cabeca);
+
+    this.definirAltura = altura => corpo.style.height = `${altura}px`;
 }
 
-let pontos = 0
-const posicaoXBird = bird.getBoundingClientRect().x
-const verificarPontos = tuboCompleto => {
-    const intevalo = setInterval(() => {
-        const posicaoYBird = bird.getBoundingClientRect().y
+function ParDeTubos(altura, abertura, x) {
+    this.parDeTubos = novoElemento('div', 'par-de-tubos');
 
-        const tube = tuboCompleto.childNodes[0]
-        const hat = tuboCompleto.childNodes[1]
+    this.superior = new Tubo;
+    this.inferior = new Tubo(true);
 
-        let alturaTube = retirarLetras(tube.style.paddingBottom, 'px')
-        alturaTube = Number(alturaTube) * 2
-        let alturaHat = retirarLetras(hat.style.paddingBottom, 'px')
-        alturaHat = (Number(alturaHat) * 2) + 8
+    this.parDeTubos.appendChild(this.superior.tubo);
+    this.parDeTubos.appendChild(this.inferior.tubo);
 
-        const alturaTotalTube = alturaTube + alturaHat
+    this.sortearAbertura = () => {
+        const alturaSuperior = Math.random() * (altura - abertura);
+        const alturaInferior = altura - abertura - alturaSuperior;
+        this.superior.definirAltura(alturaSuperior);
+        this.inferior.definirAltura(alturaInferior);
+    };
+    this.recuperarX = () => parseInt(this.parDeTubos.style.left.split('px')[0]);
+    this.definirX = x => this.parDeTubos.style.left = `${x}px`;
+    this.recuperarLargura = () => this.parDeTubos.clientWidth;
 
-        const posicaoXTube = tube.getBoundingClientRect().x
-        const posicaoXHat = hat.getBoundingClientRect().x
-
-        // ratrear posicao do bird para saber quando há colisão
-        console.log(`posicaoYBird:${posicaoYBird}, posicaoXBird:${posicaoXBird}`)
-        console.log(`posicaoXTube:${posicaoXTube}, posicaoXHat:${posicaoXHat}`)
-        console.log(`altura total: ${alturaTotalTube}, altura tube: ${alturaTube}, altura hat: ${alturaHat}`)
-        const posicaoxPoint = tuboCompleto.childNodes[2].getBoundingClientRect().x
-        if (posicaoxPoint < 492) {
-            pontos++
-            let incrementoPlacar = retirarLetras(placar.innerHTML, 'x')
-            incrementoPlacar = `${pontos}x`
-            placar.innerHTML = incrementoPlacar
-            clearInterval(intevalo)
-        }
-    }, 30)
+    this.sortearAbertura();
+    this.definirX(x);
 }
 
-let jogoIniciado = false
-document.addEventListener('keypress', evento => {
-    if (evento.code === 'Enter' && !jogoIniciado) {
-        jogoIniciado = true
-        let tuboCompleto = criarTubo('complete-tube-top')
-        realizarMovimento(tuboCompleto)
-        verificarPontos(tuboCompleto)
+function Tubos(altura, largura, abertura, espaco, notificarPonto) {
+    this.pares = [
+        new ParDeTubos(altura, abertura, largura),
+        new ParDeTubos(altura, abertura, largura + espaco),
+        new ParDeTubos(altura, abertura, largura + espaco * 2),
+        new ParDeTubos(altura, abertura, largura + espaco * 3)
+    ];
 
-        setInterval(() => {
-            let tuboCompleto = criarTubo('complete-tube-top')
-            realizarMovimento(tuboCompleto)
-            verificarPontos(tuboCompleto)
-        }, 9900)
+    const deslocamento = 3;
+    this.animar = () => {
+        this.pares.forEach(par => {
+            par.definirX(par.recuperarX() - deslocamento);
 
-        setTimeout(() => {
-            let tuboCompleto = criarTubo('complete-tube-bottom')
-            realizarMovimento(tuboCompleto)
-            verificarPontos(tuboCompleto)
-            setInterval(() => {
-                let tuboCompleto = criarTubo('complete-tube-bottom')
-                realizarMovimento(tuboCompleto)
-                verificarPontos(tuboCompleto)
-            }, 9900)
-        }, 5400)
-
-        setInterval(() => {
-            if (marginTopBird >= 397) {
-                return
+            if (par.recuperarX() < -par.recuperarLargura()) {
+                par.definirX(par.recuperarX() + espaco * this.pares.length + 1);
+                par.sortearAbertura();
             }
 
-            marginTopBird += 10
-            bird.style.marginTop = `${marginTopBird}px`
-        }, 60)
-    } else if (evento.code === 'Space'/*  && jogoIniciado */) {
-        if (marginTopBird <= 0) {
-            return
-        }
+            const meio = largura / 2;
+            const cruzouOMeio = par.recuperarX() + deslocamento >= meio
+                && par.recuperarX() < meio;
+            if (cruzouOMeio) notificarPonto();
+        });
+    };
+}
 
-        bird.style.marginTop = `${marginTopBird}px`
-        for (let i = 0; i < 8; i++) {
-            if (marginTopBird > 0) {
-                marginTopBird -= 8
-                bird.style.marginTop = `${marginTopBird}px`
-            }
+function Passaro(alturaDoJogo) {
+    let voando = false;
+
+    this.passaro = novoElemento('img', 'passaro');
+    this.passaro.src = '../imgs/passaro.png';
+
+    this.recuperarY = () => parseInt(this.passaro.style.bottom.split('px')[0]);
+    this.definirY = y => this.passaro.style.bottom = `${y}px`;
+
+    window.onkeydown = () => voando = true;
+    window.onkeyup = () => voando = false;
+
+    this.animar = () => {
+        const novoY = this.recuperarY() + (voando ? 8 : -5);
+        const alturaMaxima = alturaDoJogo - this.passaro.clientWidth;
+
+        if (novoY <= 0) {
+            this.definirY(0);
+        } else if (novoY >= alturaMaxima) {
+            this.definirY(alturaMaxima);
+        } else {
+            this.definirY(novoY);
         }
-    }
-})
+    };
+
+    this.definirY(alturaDoJogo / 2);
+}
+
+function notificarPonto() {
+    const progresso = document.querySelector('.progresso');
+    const pontos = parseInt(progresso.innerHTML.split('x')[0]);
+    progresso.innerHTML = `${pontos + 1}x`;
+}
+
+function verificarSobreposicao(elementoA, elementoB) {
+    const a = elementoA.getBoundingClientRect();
+    const b = elementoB.getBoundingClientRect();
+
+    const horizontal = a.left + a.width >= b.left
+        && b.left + b.width >= a.left;
+    const vertical = a.top + a.height >= b.top
+        && b.top + b.height >= a.top;
+    return horizontal && vertical;
+}
+
+function verificarColisao(passaro, tubos) {
+    let colisao = false;
+
+    tubos.pares.forEach(par => {
+        if (!colisao) {
+            const superior = par.superior.tubo;
+            const inferior = par.inferior.tubo;
+            colisao = verificarSobreposicao(passaro.passaro, superior)
+                || verificarSobreposicao(passaro.passaro, inferior);
+        }
+    });
+    return colisao;
+}
+
+function FlappyBird() {
+    const areaDoJogo = document.querySelector('[wm-flappy]');
+    const altura = areaDoJogo.clientHeight;
+    const largura = areaDoJogo.clientWidth;
+
+    const tubos = new Tubos(altura, largura, 200, 400, notificarPonto);
+    const passaro = new Passaro(altura);
+
+    areaDoJogo.appendChild(passaro.passaro);
+    tubos.pares.forEach(par => areaDoJogo.appendChild(par.parDeTubos));
+
+    this.iniciar = () => {
+        const temporizador = setInterval(() => {
+            tubos.animar();
+            passaro.animar();
+            if (verificarColisao(passaro, tubos)) clearInterval(temporizador); 
+        }, 20);
+    };
+}
+
+new FlappyBird().iniciar();
