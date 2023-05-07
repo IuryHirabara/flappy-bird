@@ -66,8 +66,7 @@ function Tubos(altura, largura, abertura, espaco, notificarPonto) {
 function Passaro(alturaDoJogo) {
     let voando = false;
 
-    this.passaro = novoElemento('img', 'passaro');
-    this.passaro.src = '../imgs/passaro.png';
+    this.passaro = document.querySelector('.passaro');
 
     this.recuperarY = () => parseInt(this.passaro.style.bottom.split('px')[0]);
     this.definirY = y => this.passaro.style.bottom = `${y}px`;
