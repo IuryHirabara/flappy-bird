@@ -7,6 +7,15 @@
     src: url('../fonts/Pixel.ttf');
 }
 
+@font-face {
+    font-family: 'Press Start 2P';
+    src: url('../fonts/PressStart2P-Regular.ttf');
+}
+
+body>h1 {
+    font-family: 'Press Start 2P';
+}
+
 [wm-flappy] {
     position: relative;
     border: 5px solid dodgerblue;
@@ -63,4 +72,40 @@
     font-family: Pixel;
     font-size: 70px;
     z-index: 1;
+}
+
+.btn-reload {
+    display: none;
+    position: absolute;
+    top: 45%;
+    width: 100%;
+    text-align: center;
+}
+
+.btn-reload>button {
+    font-family: 'Press Start 2P';
+    text-transform: uppercase;
+    font-size: 50px;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    animation: blink 1s steps(4, start) infinite;
+}
+
+.flap {
+    animation: rotate .1s linear;
+}
+
+@keyframes blink {
+    to {
+        visibility: hidden
+    }
+}
+
+@keyframes rotate {
+    to {
+        transform: rotate(-45deg);
+    }
 }

@@ -1,3 +1,7 @@
+const somPonto = new Audio('../sound/score.m4a');
+const somMorte = new Audio('../sound/death.m4a');
+const somFlap = new Audio('../sound/flap.m4a');
+
 function novoElemento(tagName, className) {
     const elem = document.createElement(tagName);
     elem.classList.add(className);
@@ -71,8 +75,17 @@ function Passaro(alturaDoJogo) {
     this.recuperarY = () => parseInt(this.passaro.style.bottom.split('px')[0]);
     this.definirY = y => this.passaro.style.bottom = `${y}px`;
 
-    window.onkeydown = () => voando = true;
-    window.onkeyup = () => voando = false;
+    window.onkeydown = () => {
+        voando = true
+        somFlap.play();
+
+        this.passaro.classList.add('flap');
+    };
+    window.onkeyup = () => {
+        voando = false
+
+        this.passaro.classList.remove('flap');
+    };
 
     this.animar = () => {
         const novoY = this.recuperarY() + (voando ? 8 : -5);
@@ -94,6 +107,8 @@ function notificarPonto() {
     const progresso = document.querySelector('.progresso');
     const pontos = parseInt(progresso.innerHTML.split('x')[0]);
     progresso.innerHTML = `${pontos + 1}x`;
+
+    somPonto.play();
 }
 
 function verificarSobreposicao(elementoA, elementoB) {
@@ -121,6 +136,12 @@ function verificarColisao(passaro, tubos) {
     return colisao;
 }
 
+function mostrarBotaoRepetir() {
+    const botao = document.querySelector('.btn-reload');
+    botao.onclick = () => window.location.reload();
+    botao.style.display = 'initial';
+}
+
 function FlappyBird() {
     const areaDoJogo = document.querySelector('[wm-flappy]');
     const altura = areaDoJogo.clientHeight;
@@ -136,7 +157,12 @@ function FlappyBird() {
         const temporizador = setInterval(() => {
             tubos.animar();
             passaro.animar();
-            if (verificarColisao(passaro, tubos)) clearInterval(temporizador); 
+            if (verificarColisao(passaro, tubos)) {
+                clearInterval(temporizador);
+
+                mostrarBotaoRepetir();
+                somMorte.play();
+            }
         }, 20);
     };
 }
